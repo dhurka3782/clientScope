@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -19,17 +19,13 @@ import {
   Moon,
   FileText,
   LogOut,
-  User,
   History,
-  Menu,
-  X,
 } from "lucide-react";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
   const [scrolled, setScrolled] = useState(false);
 
@@ -79,18 +75,20 @@ export default function Navbar() {
             </span>
           </Link>
 
-          {/* Desktop Nav */}
-          <div className="hidden items-center gap-4 md:flex">
+          {/* Navigation - Visible on all screen sizes */}
+          <div className="flex items-center gap-2 sm:gap-4">
             {user && (
               <Link href="/proposals">
                 <Button
                   variant="ghost"
                   className={`gap-2 transition-colors duration-300 hover:bg-secondary ${
-                    scrolled ? "text-foreground" : "text-white/90 hover:text-white hover:bg-white/10"
+                    scrolled
+                      ? "text-foreground"
+                      : "text-white/90 hover:text-white hover:bg-white/10"
                   }`}
                 >
                   <History className="h-4 w-4" />
-                  My Proposals
+                  <span className="hidden sm:inline">My Proposals</span>
                 </Button>
               </Link>
             )}
@@ -102,7 +100,9 @@ export default function Navbar() {
                 size="icon"
                 onClick={toggleTheme}
                 className={`transition-colors duration-300 hover:bg-secondary ${
-                  scrolled ? "text-foreground" : "text-white/90 hover:text-white hover:bg-white/10"
+                  scrolled
+                    ? "text-foreground"
+                    : "text-white/90 hover:text-white hover:bg-white/10"
                 }`}
               >
                 {theme === "dark" ? (
@@ -117,7 +117,10 @@ export default function Navbar() {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                  <Button
+                    variant="ghost"
+                    className="relative h-10 w-10 rounded-full"
+                  >
                     <Avatar className="h-10 w-10">
                       <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
                         {initials}
@@ -157,14 +160,16 @@ export default function Navbar() {
                   variant="ghost"
                   onClick={() => openAuth("login")}
                   className={`transition-colors duration-300 hover:bg-secondary ${
-                    scrolled ? "text-foreground" : "text-white/90 hover:text-white hover:bg-white/10"
+                    scrolled
+                      ? "text-foreground"
+                      : "text-white/90 hover:text-white hover:bg-white/10"
                   }`}
                 >
                   Sign In
                 </Button>
                 <Button
                   onClick={() => openAuth("signup")}
-                  className={`transition-colors duration-300 ${
+                  className={`transition-colors duration-300 rounded-2xl px-6 ${
                     scrolled
                       ? "bg-primary hover:bg-primary/90 text-primary-foreground"
                       : "bg-white/20 hover:bg-white/30 text-white border border-white/30"
@@ -175,122 +180,7 @@ export default function Navbar() {
               </div>
             )}
           </div>
-
-          {/* Mobile Menu Toggle */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className={`md:hidden transition-colors duration-300 ${
-              scrolled ? "text-foreground" : "text-white/90 hover:text-white hover:bg-white/10"
-            }`}
-            onClick={() => setShowMobileMenu(!showMobileMenu)}
-          >
-            {showMobileMenu ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <Menu className="h-5 w-5" />
-            )}
-          </Button>
         </div>
-
-        {/* Mobile Menu */}
-        <AnimatePresence>
-          {showMobileMenu && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="overflow-hidden border-t border-border md:hidden"
-            >
-              <div className="space-y-2 px-4 py-4">
-                {user && (
-                  <Link href="/proposals">
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start gap-2 text-foreground"
-                      onClick={() => setShowMobileMenu(false)}
-                    >
-                      <History className="h-4 w-4" />
-                      My Proposals
-                    </Button>
-                  </Link>
-                )}
-
-                {toggleTheme && (
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start gap-2 text-foreground"
-                    onClick={() => {
-                      toggleTheme();
-                      setShowMobileMenu(false);
-                    }}
-                  >
-                    {theme === "dark" ? (
-                      <>
-                        <Sun className="h-4 w-4" /> Light Mode
-                      </>
-                    ) : (
-                      <>
-                        <Moon className="h-4 w-4" /> Dark Mode
-                      </>
-                    )}
-                  </Button>
-                )}
-
-                <div className="border-t border-border pt-2">
-                  {user ? (
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-3 px-2 py-2">
-                        <Avatar className="h-8 w-8">
-                          <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                            {initials}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="text-sm font-medium text-foreground">{user.name}</p>
-                          <p className="text-xs text-muted-foreground">{user.email}</p>
-                        </div>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start gap-2 text-destructive"
-                        onClick={() => {
-                          logout();
-                          setShowMobileMenu(false);
-                        }}
-                      >
-                        <LogOut className="h-4 w-4" />
-                        Sign Out
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col gap-2">
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-center"
-                        onClick={() => {
-                          openAuth("login");
-                          setShowMobileMenu(false);
-                        }}
-                      >
-                        Sign In
-                      </Button>
-                      <Button
-                        className="w-full justify-center bg-primary hover:bg-primary/90 text-primary-foreground"
-                        onClick={() => {
-                          openAuth("signup");
-                          setShowMobileMenu(false);
-                        }}
-                      >
-                        Get Started
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </nav>
 
       {/* Auth Modal */}

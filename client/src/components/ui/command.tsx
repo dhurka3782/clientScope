@@ -6,7 +6,7 @@ import { SearchIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import {
-  Dialog,
+  DialogUi,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -36,14 +36,14 @@ function CommandDialog({
   className,
   showCloseButton = true,
   ...props
-}: React.ComponentProps<typeof Dialog> & {
+}: React.ComponentProps<typeof DialogUi> & {
   title?: string;
   description?: string;
   className?: string;
   showCloseButton?: boolean;
 }) {
   return (
-    <Dialog {...props}>
+    <DialogUi {...props}>
       <DialogHeader className="sr-only">
         <DialogTitle>{title}</DialogTitle>
         <DialogDescription>{description}</DialogDescription>
@@ -56,7 +56,7 @@ function CommandDialog({
           {children}
         </Command>
       </DialogContent>
-    </Dialog>
+    </DialogUi>
   );
 }
 

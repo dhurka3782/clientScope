@@ -19,7 +19,7 @@ const DialogCompositionContext = React.createContext<{
 export const useDialogComposition = () =>
   React.useContext(DialogCompositionContext);
 
-function Dialog({
+function DialogUi({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Root>) {
   const composingRef = React.useRef(false);
@@ -195,7 +195,7 @@ function DialogDescription({
 }
 
 export {
-  Dialog,
+  DialogUi,
   DialogClose,
   DialogContent,
   DialogDescription,

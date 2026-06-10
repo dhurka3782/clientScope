@@ -359,7 +359,7 @@ ${proposal.nextSteps}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6 }}
-          className="relative h-screen overflow-hidden bg-gradient-to-br from-primary via-primary/80 to-accent/60"
+          className="relative h-[500px] overflow-hidden bg-gradient-to-br from-primary via-primary/80 to-accent/60"
         >
           {/* Background image fills entire hero */}
           <div

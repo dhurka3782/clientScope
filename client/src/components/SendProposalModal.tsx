@@ -1,6 +1,6 @@
 import { useState } from "react";
 import {
-  Dialog,
+  DialogUi,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -71,7 +71,7 @@ export default function SendProposalModal({
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <DialogUi open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-lg border-border bg-card">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-foreground" style={{ fontFamily: "Poppins" }}>
@@ -182,6 +182,6 @@ export default function SendProposalModal({
           </form>
         )}
       </DialogContent>
-    </Dialog>
+    </DialogUi>
   );
 }

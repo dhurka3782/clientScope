@@ -2,14 +2,14 @@ import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
+  DialogUi,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogTitle,
 } from "@/components/ui/dialog";
 
-interface ManusDialogProps {
+interface DialogProps {
   title?: string;
   logo?: string;
   open?: boolean;
@@ -18,14 +18,14 @@ interface ManusDialogProps {
   onClose?: () => void;
 }
 
-export function ManusDialog({
+export function Dialog({
   title,
   logo,
   open = false,
   onLogin,
   onOpenChange,
   onClose,
-}: ManusDialogProps) {
+}: DialogProps) {
   const [internalOpen, setInternalOpen] = useState(open);
 
   useEffect(() => {
@@ -47,7 +47,7 @@ export function ManusDialog({
   };
 
   return (
-    <Dialog
+    <DialogUi
       open={onOpenChange ? open : internalOpen}
       onOpenChange={handleOpenChange}
     >
@@ -80,6 +80,6 @@ export function ManusDialog({
           </Button>
         </DialogFooter>
       </DialogContent>
-    </Dialog>
+    </DialogUi>
   );
 }

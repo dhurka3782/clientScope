@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Dialog,
+  DialogUi,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -64,7 +64,7 @@ export default function AuthModal({ open, onClose, initialMode = "login" }: Auth
   };
 
   return (
-    <Dialog open={open} onOpenChange={(open) => {
+    <DialogUi open={open} onOpenChange={(open) => {
       if (!open) {
         resetForm();
         onClose();
@@ -205,6 +205,6 @@ export default function AuthModal({ open, onClose, initialMode = "login" }: Auth
           </div>
         </form>
       </DialogContent>
-    </Dialog>
+    </DialogUi>
   );
 }
