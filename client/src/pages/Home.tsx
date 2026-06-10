@@ -353,14 +353,15 @@ ${proposal.nextSteps}
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero Section */}
+      {/* Hero Section - Full viewport, image extends top-to-bottom behind transparent navbar */}
       {!showProposal && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6 }}
-          className="relative overflow-hidden bg-gradient-to-br from-primary via-primary/80 to-accent/60 px-4 py-20 md:py-32"
+          className="relative h-screen overflow-hidden bg-gradient-to-br from-primary via-primary/80 to-accent/60"
         >
+          {/* Background image fills entire hero */}
           <div
             className="absolute inset-0 opacity-30"
             style={{
@@ -369,7 +370,8 @@ ${proposal.nextSteps}
               backgroundPosition: 'center',
             }}
           />
-          <div className="relative z-10 mx-auto max-w-3xl text-center">
+          {/* Centered content - shifted down by half navbar height for visual balance */}
+          <div className="relative z-10 mx-auto flex h-full max-w-3xl flex-col items-center justify-center px-4 text-center -translate-y-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -391,8 +393,8 @@ ${proposal.nextSteps}
         </motion.div>
       )}
 
-      {/* Main Content */}
-      <div className="mx-auto max-w-7xl px-4 py-12 md:py-16">
+      {/* Main Content - with pt-16 to account for fixed navbar */}
+      <div className="mx-auto max-w-7xl px-4 py-12 md:py-16" style={!showProposal ? {} : { paddingTop: '5rem' }}>
         {!showProposal ? (
           // Form View
           <div className="grid gap-8 md:grid-cols-2">

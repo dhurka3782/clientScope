@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,16 @@ export default function Navbar() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const openAuth = (mode: "login" | "signup") => {
     setAuthMode(mode);
@@ -46,7 +56,13 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-lg supports-[backdrop-filter]:bg-background/60">
+      <nav
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          scrolled
+            ? "border-b border-border bg-background/95 backdrop-blur-lg shadow-sm supports-[backdrop-filter]:bg-background/80"
+            : "border-transparent bg-transparent"
+        }`}
+      >
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
@@ -54,7 +70,9 @@ export default function Navbar() {
               CS
             </div>
             <span
-              className="hidden text-lg font-bold text-foreground sm:inline"
+              className={`hidden text-lg font-bold sm:inline transition-colors duration-300 ${
+                scrolled ? "text-foreground" : "text-white"
+              }`}
               style={{ fontFamily: "Poppins" }}
             >
               Client Scope
@@ -65,7 +83,12 @@ export default function Navbar() {
           <div className="hidden items-center gap-4 md:flex">
             {user && (
               <Link href="/proposals">
-                <Button variant="ghost" className="gap-2 text-foreground hover:bg-secondary">
+                <Button
+                  variant="ghost"
+                  className={`gap-2 transition-colors duration-300 hover:bg-secondary ${
+                    scrolled ? "text-foreground" : "text-white/90 hover:text-white hover:bg-white/10"
+                  }`}
+                >
                   <History className="h-4 w-4" />
                   My Proposals
                 </Button>
@@ -78,7 +101,9 @@ export default function Navbar() {
                 variant="ghost"
                 size="icon"
                 onClick={toggleTheme}
-                className="text-foreground hover:bg-secondary"
+                className={`transition-colors duration-300 hover:bg-secondary ${
+                  scrolled ? "text-foreground" : "text-white/90 hover:text-white hover:bg-white/10"
+                }`}
               >
                 {theme === "dark" ? (
                   <Sun className="h-5 w-5" />
@@ -131,13 +156,19 @@ export default function Navbar() {
                 <Button
                   variant="ghost"
                   onClick={() => openAuth("login")}
-                  className="text-foreground hover:bg-secondary"
+                  className={`transition-colors duration-300 hover:bg-secondary ${
+                    scrolled ? "text-foreground" : "text-white/90 hover:text-white hover:bg-white/10"
+                  }`}
                 >
                   Sign In
                 </Button>
                 <Button
                   onClick={() => openAuth("signup")}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                  className={`transition-colors duration-300 ${
+                    scrolled
+                      ? "bg-primary hover:bg-primary/90 text-primary-foreground"
+                      : "bg-white/20 hover:bg-white/30 text-white border border-white/30"
+                  }`}
                 >
                   Get Started
                 </Button>
@@ -149,7 +180,9 @@ export default function Navbar() {
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden text-foreground"
+            className={`md:hidden transition-colors duration-300 ${
+              scrolled ? "text-foreground" : "text-white/90 hover:text-white hover:bg-white/10"
+            }`}
             onClick={() => setShowMobileMenu(!showMobileMenu)}
           >
             {showMobileMenu ? (
