@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useLocation } from 'wouter';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -6,18 +7,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Copy, Download, Loader2, Check, Zap, Target, Layers, Clock, DollarSign, Save, Send, Mail } from 'lucide-react';
+import { Copy, Download, Loader2, Check, Zap, Target, Layers, Clock, DollarSign, Save, Send, Mail, Building2, Target as TargetIcon, Wallet, Timer, Monitor, Sparkles, ArrowRight, Briefcase } from 'lucide-react';
 import { toast } from 'sonner';
-import { useAuth, apiPost } from '@/contexts/AuthContext';
+import { useAuth, apiPost, apiGet } from '@/contexts/AuthContext';
 import SendProposalModal from '@/components/SendProposalModal';
 
 /**
- * Design Philosophy: Premium Minimalist with Depth
- * - Deep Indigo (#1e3a8a) primary + Teal (#0891b2) accents
- * - Asymmetric split layout (form left, preview right)
- * - Poppins display + Inter body fonts
- * - Smooth 200-300ms transitions, staggered card reveals
- */
+Design Philosophy: Premium Minimalist with Depth
+Deep Indigo (#1e3a8a) primary + Teal (#0891b2) accents
+Asymmetric split layout (form left, preview right)
+Poppins display + Inter body fonts
+Smooth 200-300ms transitions, staggered card reveals
+*/
 
 interface FormData {
   businessType: string;
@@ -44,7 +45,6 @@ const templateGenerateProposal = (data: FormData): ProposalData => {
     '15k-50k': { min: 15000, max: 50000 },
     'over-50k': { min: 50000, max: 150000 },
   };
-
   const range = budgetRanges[data.budget] || { min: 10000, max: 30000 };
   const avgBudget = (range.min + range.max) / 2;
 
@@ -55,7 +55,6 @@ const templateGenerateProposal = (data: FormData): ProposalData => {
     saas: ['Next.js', 'TypeScript', 'Prisma', 'PostgreSQL', 'AWS'],
     other: ['React', 'Node.js', 'MongoDB', 'Docker', 'Cloud Platform'],
   };
-
   const stack = stackMap[data.platform] || stackMap.other;
 
   const timelineMap: Record<string, number> = {
@@ -64,7 +63,6 @@ const templateGenerateProposal = (data: FormData): ProposalData => {
     '3-6-months': 12,
     '6-plus-months': 20,
   };
-
   const weeks = timelineMap[data.timeline] || 8;
 
   return {
@@ -133,8 +131,74 @@ const templateGenerateProposal = (data: FormData): ProposalData => {
   };
 };
 
+// Form field configuration with icons
+const formFields = [
+  {
+    key: 'businessType' as keyof FormData,
+    label: 'What type of business are you building for?',
+    placeholder: 'Select business type',
+    icon: Building2,
+    type: 'select' as const,
+    options: [
+      { value: 'SaaS', label: 'SaaS Platform' },
+      { value: 'E-commerce', label: 'E-commerce Store' },
+      { value: 'Marketplace', label: 'Marketplace' },
+      { value: 'Content', label: 'Content Platform' },
+      { value: 'Other', label: 'Other' },
+    ],
+  },
+  {
+    key: 'goal' as keyof FormData,
+    label: "What's your main goal?",
+    placeholder: 'e.g., Help teams collaborate on projects in real-time',
+    icon: TargetIcon,
+    type: 'textarea' as const,
+  },
+  {
+    key: 'budget' as keyof FormData,
+    label: 'Budget Range',
+    placeholder: 'Select budget range',
+    icon: Wallet,
+    type: 'select' as const,
+    options: [
+      { value: 'under-5k', label: 'Under $5,000' },
+      { value: '5k-15k', label: '$5,000 - $15,000' },
+      { value: '15k-50k', label: '$15,000 - $50,000' },
+      { value: 'over-50k', label: '$50,000+' },
+    ],
+  },
+  {
+    key: 'timeline' as keyof FormData,
+    label: 'Desired Timeline',
+    placeholder: 'Select timeline',
+    icon: Timer,
+    type: 'select' as const,
+    options: [
+      { value: '2-4-weeks', label: '2-4 weeks' },
+      { value: '1-3-months', label: '1-3 months' },
+      { value: '3-6-months', label: '3-6 months' },
+      { value: '6-plus-months', label: '6+ months' },
+    ],
+  },
+  {
+    key: 'platform' as keyof FormData,
+    label: 'Preferred Platform',
+    placeholder: 'Select platform',
+    icon: Monitor,
+    type: 'select' as const,
+    options: [
+      { value: 'web', label: 'Web Application' },
+      { value: 'mobile', label: 'Mobile App' },
+      { value: 'ecommerce', label: 'E-commerce' },
+      { value: 'saas', label: 'SaaS' },
+      { value: 'other', label: 'Other' },
+    ],
+  },
+];
+
 export default function Home() {
   const { user, token } = useAuth();
+  const [location, setLocation] = useLocation();
   const [formData, setFormData] = useState<FormData>({
     businessType: '',
     goal: '',
@@ -142,28 +206,56 @@ export default function Home() {
     timeline: '',
     platform: '',
   });
-
   const [proposal, setProposal] = useState<ProposalData | null>(null);
   const [loading, setLoading] = useState(false);
   const [showProposal, setShowProposal] = useState(false);
   const [savedProposalId, setSavedProposalId] = useState<number | null>(null);
   const [showSendModal, setShowSendModal] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [viewLoading, setViewLoading] = useState(false);
 
+  // Load proposal from URL query param ?proposalId=...
+  useEffect(() => {
+    const params = new URLSearchParams(location.split('?')[1] || '');
+    const proposalId = params.get('proposalId');
+    if (!proposalId || !token) return;
+
+    const fetchProposal = async () => {
+      setViewLoading(true);
+      try {
+        const data = await apiGet(`/api/proposals/${proposalId}`, token);
+        // The API returns proposal_data as the parsed JSON with the proposal structure
+        if (data.proposal_data) {
+          setProposal(data.proposal_data);
+          setSavedProposalId(data.id);
+          setShowProposal(true);
+          toast.success('Proposal loaded');
+        }
+      } catch (err: any) {
+        toast.error(err.message || 'Failed to load proposal');
+      } finally {
+        setViewLoading(false);
+      }
+    };
+
+    fetchProposal();
+  }, [location, token]);
+
+  const completedFields = Object.values(formData).filter((v) => v).length;
+  const progressPercentage = (completedFields / 5) * 100;
   const isFormComplete = Object.values(formData).every((v) => v);
 
   const handleGenerateProposal = async () => {
     if (!isFormComplete) return;
-
     setLoading(true);
     setSavedProposalId(null);
 
     try {
-      // Try AI-powered generation if user is authenticated
       if (user && token) {
         try {
-          const data = await apiPost("/api/proposals/generate", formData, token);
-          if (data.source === "ai" && data.proposal) {
+          const data = await apiPost('/api/proposals/generate', formData, token);
+          if (data.source === 'ai' && data.proposal) {
             setProposal(data.proposal);
             setShowProposal(true);
             setLoading(false);
@@ -171,11 +263,10 @@ export default function Home() {
             return;
           }
         } catch (err: any) {
-          console.warn("AI generation failed, falling back to template:", err.message);
+          console.warn('AI generation failed, falling back to template:', err.message);
         }
       }
 
-      // Fallback to template-based generation
       await new Promise((resolve) => setTimeout(resolve, 800));
       const generated = templateGenerateProposal(formData);
       setProposal(generated);
@@ -183,10 +274,9 @@ export default function Home() {
       setLoading(false);
       toast.success('Proposal generated successfully!');
 
-      // Auto-save if user is authenticated
       if (user && token) {
         try {
-          await apiPost("/api/proposals", {
+          await apiPost('/api/proposals', {
             title: generated.title,
             businessType: formData.businessType,
             goal: formData.goal,
@@ -201,21 +291,20 @@ export default function Home() {
         }
       }
     } catch (err) {
-      console.error("Generation error:", err);
-      toast.error("Failed to generate proposal");
+      console.error('Generation error:', err);
+      toast.error('Failed to generate proposal');
       setLoading(false);
     }
   };
 
   const handleSaveProposal = async () => {
     if (!proposal || !user || !token) {
-      toast.error("Please sign in to save proposals");
+      toast.error('Please sign in to save proposals');
       return;
     }
-
     setSaving(true);
     try {
-      const data = await apiPost("/api/proposals", {
+      const data = await apiPost('/api/proposals', {
         title: proposal.title,
         businessType: formData.businessType,
         goal: formData.goal,
@@ -228,7 +317,7 @@ export default function Home() {
       setSavedProposalId(data.id);
       toast.success('Proposal saved!');
     } catch (err: any) {
-      toast.error(err.message || "Failed to save proposal");
+      toast.error(err.message || 'Failed to save proposal');
     } finally {
       setSaving(false);
     }
@@ -256,16 +345,13 @@ ${proposal.budgetSplit.map((b) => `${b.category}: ${b.percentage}% (${b.amount})
 
 NEXT STEPS
 ${proposal.nextSteps}
-    `.trim();
-
+`.trim();
     navigator.clipboard.writeText(text);
     toast.success('Proposal copied to clipboard!');
   };
 
   const handleDownloadPDF = () => {
     if (!proposal) return;
-
-    // Generate a printable version
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
       toast.error('Please allow popups to download PDF');
@@ -302,18 +388,14 @@ ${proposal.nextSteps}
         <h1>${proposal.title}</h1>
         <p class="meta">Professional Project Proposal</p>
         <hr />
-
         <h2>Problem Summary</h2>
         <p>${proposal.problemSummary}</p>
-
         <h2>Recommended Stack</h2>
         <div class="stack">
           ${proposal.stack.map((tech: string) => `<span class="stack-item">${tech}</span>`).join('')}
         </div>
-
         <h2>Deliverables</h2>
         ${proposal.deliverables.map((d: string) => `<div class="deliverable">${d}</div>`).join('')}
-
         <h2>Project Timeline</h2>
         ${proposal.timeline.map((phase: any) => `
           <div class="phase">
@@ -324,7 +406,6 @@ ${proposal.nextSteps}
             </ul>
           </div>
         `).join('')}
-
         <h2>Budget Breakdown</h2>
         ${proposal.budgetSplit.map((b: any) => `
           <div class="budget-item">
@@ -332,7 +413,6 @@ ${proposal.nextSteps}
             <span style="font-weight: 600; color: #0891b2;">${b.amount}</span>
           </div>
         `).join('')}
-
         <h2>Next Steps</h2>
         <div class="next-steps">
           <p>${proposal.nextSteps}</p>
@@ -343,7 +423,6 @@ ${proposal.nextSteps}
     printWindow.document.close();
     printWindow.focus();
 
-    // Wait for resources to load then print
     setTimeout(() => {
       printWindow.print();
     }, 500);
@@ -351,9 +430,21 @@ ${proposal.nextSteps}
     toast.success('PDF dialog opened');
   };
 
+  // Show loading screen when fetching a proposal from URL param
+  if (viewLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="text-center">
+          <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
+          <p className="mt-4 text-muted-foreground">Loading proposal...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero Section - Full viewport, image extends top-to-bottom behind transparent navbar */}
+      {/* Hero Section */}
       {!showProposal && (
         <motion.div
           initial={{ opacity: 0 }}
@@ -361,7 +452,6 @@ ${proposal.nextSteps}
           transition={{ duration: 0.6 }}
           className="relative h-[500px] overflow-hidden bg-gradient-to-br from-primary via-primary/80 to-accent/60"
         >
-          {/* Background image fills entire hero */}
           <div
             className="absolute inset-0 opacity-30"
             style={{
@@ -370,7 +460,6 @@ ${proposal.nextSteps}
               backgroundPosition: 'center',
             }}
           />
-          {/* Centered content - shifted down by half navbar height for visual balance */}
           <div className="relative z-10 mx-auto flex h-full max-w-3xl flex-col items-center justify-center px-4 text-center -translate-y-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -393,148 +482,310 @@ ${proposal.nextSteps}
         </motion.div>
       )}
 
-      {/* Main Content - with pt-16 to account for fixed navbar */}
+      {/* Main Content */}
       <div className="mx-auto max-w-7xl px-4 py-12 md:py-16" style={!showProposal ? {} : { paddingTop: '5rem' }}>
         {!showProposal ? (
-          // Form View
           <div className="grid gap-8 md:grid-cols-2">
-            {/* Form Section */}
+            {/* ===== MODERN FORM SECTION ===== */}
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
+              initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
+              transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
             >
-              <Card className="sticky top-8 border-border bg-card p-8 shadow-lg">
-                <h2 className="mb-8 text-2xl font-bold text-foreground" style={{ fontFamily: 'Poppins' }}>Project Brief</h2>
+              <div className="sticky top-8">
+                {/* Glassmorphism Card */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.2 }}
+                  className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white via-slate-50 to-indigo-50/30 p-8 shadow-2xl shadow-indigo-500/10 backdrop-blur-xl dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900/20"
+                >
+                  {/* Decorative gradient orbs */}
+                  <div className="pointer-events-none absolute -top-24 -right-24 h-48 w-48 rounded-full bg-gradient-to-br from-indigo-500/20 to-cyan-500/20 blur-3xl" />
+                  <div className="pointer-events-none absolute -bottom-24 -left-24 h-48 w-48 rounded-full bg-gradient-to-br from-cyan-500/10 to-indigo-500/10 blur-3xl" />
 
-                <div className="space-y-6">
-                  {/* Business Type */}
-                  <div className="space-y-2">
-                    <Label htmlFor="business-type" className="text-foreground" style={{ fontFamily: 'Poppins' }}>
-                      What type of business are you building for?
-                    </Label>
-                    <Select value={formData.businessType} onValueChange={(v) => setFormData({ ...formData, businessType: v })}>
-                      <SelectTrigger id="business-type" className="border-border bg-input text-foreground">
-                        <SelectValue placeholder="Select business type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="SaaS">SaaS Platform</SelectItem>
-                        <SelectItem value="E-commerce">E-commerce Store</SelectItem>
-                        <SelectItem value="Marketplace">Marketplace</SelectItem>
-                        <SelectItem value="Content">Content Platform</SelectItem>
-                        <SelectItem value="Other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  {/* Header */}
+                  <div className="relative mb-8">
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.5, delay: 0.3 }}
+                      className="mb-4 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-indigo-500/10 to-cyan-500/10 px-4 py-1.5 text-sm font-medium text-indigo-700 dark:text-indigo-300"
+                    >
+                      {/* <Briefcase className="h-4 w-4" /> */}
+                      Project Brief
+                    </motion.div>
+                    <motion.h2
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: 0.35 }}
+                      className="text-2xl font-bold text-slate-900 dark:text-white"
+                      style={{ fontFamily: 'Poppins' }}
+                    >
+                      Tell us about your project
+                    </motion.h2>
+                    <motion.p
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: 0.4 }}
+                      className="mt-1 text-sm text-slate-500 dark:text-slate-400"
+                    >
+                      Fill in the details below to generate your proposal
+                    </motion.p>
                   </div>
 
-                  {/* Goal */}
-                  <div className="space-y-2">
-                    <Label htmlFor="goal" className="text-foreground" style={{ fontFamily: 'Poppins' }}>
-                      What's your main goal?
-                    </Label>
-                    <Textarea
-                      id="goal"
-                      placeholder="e.g., Help teams collaborate on projects in real-time"
-                      value={formData.goal}
-                      onChange={(e) => setFormData({ ...formData, goal: e.target.value })}
-                      className="min-h-24 border-border bg-input text-foreground placeholder:text-muted-foreground"
-                    />
-                  </div>
+                  {/* Progress Bar */}
+                  <motion.div
+                    initial={{ opacity: 0, scaleX: 0 }}
+                    animate={{ opacity: 1, scaleX: 1 }}
+                    transition={{ duration: 0.6, delay: 0.5 }}
+                    className="mb-8"
+                  >
+                    <div className="mb-2 flex items-center justify-between text-xs font-medium">
+                      <span className="text-slate-500 dark:text-slate-400">Progress</span>
+                      <span className="text-indigo-600 dark:text-indigo-400">
+                        {completedFields} of 5 completed
+                      </span>
+                    </div>
+                    <div className="h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${progressPercentage}%` }}
+                        transition={{ duration: 0.8, ease: 'easeOut' }}
+                        className="h-full rounded-full bg-gradient-to-r from-indigo-500 via-indigo-600 to-cyan-500"
+                      />
+                    </div>
+                  </motion.div>
 
-                  {/* Budget */}
-                  <div className="space-y-2">
-                    <Label htmlFor="budget" className="text-foreground" style={{ fontFamily: 'Poppins' }}>
-                      Budget Range
-                    </Label>
-                    <Select value={formData.budget} onValueChange={(v) => setFormData({ ...formData, budget: v })}>
-                      <SelectTrigger id="budget" className="border-border bg-input text-foreground">
-                        <SelectValue placeholder="Select budget range" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="under-5k">Under $5,000</SelectItem>
-                        <SelectItem value="5k-15k">$5,000 - $15,000</SelectItem>
-                        <SelectItem value="15k-50k">$15,000 - $50,000</SelectItem>
-                        <SelectItem value="over-50k">$50,000+</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {/* Form Fields */}
+                  <div className="relative space-y-5">
+                    {formFields.map((field, index) => {
+                      const Icon = field.icon;
+                      const isFilled = formData[field.key] !== '';
+                      const isFocused = focusedField === field.key;
 
-                  {/* Timeline */}
-                  <div className="space-y-2">
-                    <Label htmlFor="timeline" className="text-foreground" style={{ fontFamily: 'Poppins' }}>
-                      Desired Timeline
-                    </Label>
-                    <Select value={formData.timeline} onValueChange={(v) => setFormData({ ...formData, timeline: v })}>
-                      <SelectTrigger id="timeline" className="border-border bg-input text-foreground">
-                        <SelectValue placeholder="Select timeline" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="2-4-weeks">2-4 weeks</SelectItem>
-                        <SelectItem value="1-3-months">1-3 months</SelectItem>
-                        <SelectItem value="3-6-months">3-6 months</SelectItem>
-                        <SelectItem value="6-plus-months">6+ months</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                      return (
+                        <motion.div
+                          key={field.key}
+                          initial={{ opacity: 0, y: 15 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.4, delay: 0.15 * index }}
+                        >
+                          <div
+                            className={`group relative rounded-xl border-2 transition-all duration-300 ${
+                              isFocused
+                                ? 'border-indigo-500 bg-white shadow-lg shadow-indigo-500/10 dark:bg-slate-800'
+                                : isFilled
+                                ? 'border-cyan-200 bg-white/80 dark:border-cyan-800 dark:bg-slate-800/80'
+                                : 'border-slate-200 bg-white/60 hover:border-slate-300 dark:border-slate-700 dark:bg-slate-800/60 dark:hover:border-slate-600'
+                            }`}
+                          >
+                            {/* Field Icon Badge */}
+                            <div
+                              className={`absolute -top-3 left-4 z-10 flex h-6 w-6 items-center justify-center rounded-lg transition-all duration-300 ${
+                                isFocused
+                                  ? 'bg-gradient-to-br from-indigo-500 to-cyan-500 text-white shadow-md shadow-indigo-500/30'
+                                  : isFilled
+                                  ? 'bg-gradient-to-br from-cyan-400 to-cyan-500 text-white shadow-md shadow-cyan-500/30'
+                                  : 'bg-slate-100 text-slate-400 dark:bg-slate-700 dark:text-slate-500'
+                              }`}
+                            >
+                              <Icon className="h-3.5 w-3.5" />
+                            </div>
 
-                  {/* Platform */}
-                  <div className="space-y-2">
-                    <Label htmlFor="platform" className="text-foreground" style={{ fontFamily: 'Poppins' }}>
-                      Preferred Platform
-                    </Label>
-                    <Select value={formData.platform} onValueChange={(v) => setFormData({ ...formData, platform: v })}>
-                      <SelectTrigger id="platform" className="border-border bg-input text-foreground">
-                        <SelectValue placeholder="Select platform" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="web">Web Application</SelectItem>
-                        <SelectItem value="mobile">Mobile App</SelectItem>
-                        <SelectItem value="ecommerce">E-commerce</SelectItem>
-                        <SelectItem value="saas">SaaS</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
+                            {/* Check indicator */}
+                            <AnimatePresence>
+                              {isFilled && (
+                                <motion.div
+                                  initial={{ opacity: 0, scale: 0 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  exit={{ opacity: 0, scale: 0 }}
+                                  transition={{ duration: 0.2 }}
+                                  className="absolute -top-3 right-4 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-emerald-500 text-white shadow-md shadow-emerald-500/30"
+                                >
+                                  <Check className="h-3.5 w-3.5" />
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+
+                            <div className="px-4 pt-3 pb-4">
+                              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                                {field.label}
+                              </label>
+
+                              {field.type === 'textarea' ? (
+                                <Textarea
+                                  placeholder={field.placeholder}
+                                  value={formData[field.key]}
+                                  onChange={(e) => setFormData({ ...formData, [field.key]: e.target.value })}
+                                  onFocus={() => setFocusedField(field.key)}
+                                  onBlur={() => setFocusedField(null)}
+                                  className="min-h-20 resize-none border-0 bg-transparent p-0 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:ring-0 dark:text-white dark:placeholder:text-slate-500"
+                                />
+                              ) : (
+                                <Select
+                                  value={formData[field.key]}
+                                  onValueChange={(v) => setFormData({ ...formData, [field.key]: v })}
+                                >
+                                  <SelectTrigger
+                                    className={`w-full border-0 bg-transparent p-0 text-sm font-medium transition-colors ${
+                                      formData[field.key]
+                                        ? 'text-slate-900 dark:text-white'
+                                        : 'text-slate-400 dark:text-slate-500'
+                                    } focus:ring-0`}
+                                  >
+                                    <SelectValue placeholder={field.placeholder} />
+                                  </SelectTrigger>
+                                  <SelectContent className="border-slate-200 dark:border-slate-700">
+                                    {field.options?.map((option) => (
+                                      <SelectItem
+                                        key={option.value}
+                                        value={option.value}
+                                        className="focus:bg-indigo-50 focus:text-indigo-700 dark:focus:bg-indigo-900/30 dark:focus:text-indigo-300"
+                                      >
+                                        {option.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              )}
+                            </div>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
                   </div>
 
                   {/* Generate Button */}
-                  <Button
-                    onClick={handleGenerateProposal}
-                    disabled={!isFormComplete || loading}
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-6 text-base transition-all duration-200 hover:shadow-lg disabled:opacity-50"
+                  <motion.div
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.9 }}
+                    className="mt-8"
                   >
-                    {loading ? (
-                      <>
-                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        <Zap className="mr-2 h-5 w-5" />
-                        Generate Proposal
-                      </>
+                    <motion.button
+                      onClick={handleGenerateProposal}
+                      disabled={!isFormComplete || loading}
+                      whileHover={isFormComplete && !loading ? { scale: 1.02, y: -2 } : {}}
+                      whileTap={isFormComplete && !loading ? { scale: 0.98 } : {}}
+                      className={`relative w-full overflow-hidden rounded-xl px-6 py-4 text-base font-semibold transition-all duration-300 ${
+                        isFormComplete && !loading
+                          ? 'bg-gradient-to-r from-indigo-600 via-indigo-700 to-cyan-600 text-white shadow-xl shadow-indigo-500/30 hover:shadow-2xl hover:shadow-indigo-500/40'
+                          : 'bg-slate-200 text-slate-400 dark:bg-slate-700 dark:text-slate-500'
+                      } disabled:cursor-not-allowed`}
+                    >
+                      {/* Shimmer effect */}
+                      {isFormComplete && !loading && (
+                        <motion.div
+                          initial={{ x: '-100%' }}
+                          animate={{ x: '100%' }}
+                          transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
+                          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                        />
+                      )}
+
+                      <span className="relative flex items-center justify-center gap-2">
+                        {loading ? (
+                          <>
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                            <span>Generating Proposal...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-5 w-5" />
+                            <span>Generate Proposal</span>
+                            <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                          </>
+                        )}
+                      </span>
+                    </motion.button>
+
+                    {!isFormComplete && (
+                      <motion.p
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="mt-3 text-center text-xs text-slate-400 dark:text-slate-500"
+                      >
+                        Complete all fields to generate your proposal
+                      </motion.p>
                     )}
-                  </Button>
-                </div>
-              </Card>
+                  </motion.div>
+                </motion.div>
+              </div>
             </motion.div>
 
             {/* Preview Section */}
             <motion.div
-              initial={{ opacity: 0, x: 20 }}
+              initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
+              transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.1 }}
               className="space-y-4"
             >
-              <div className="rounded-lg border-2 border-dashed border-border bg-secondary/50 p-12 text-center">
-                <Target className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">
-                  Fill out the form and your proposal will appear here
-                </p>
-              </div>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+                className="relative overflow-hidden rounded-2xl border-2 border-dashed border-slate-200 bg-gradient-to-br from-slate-50 to-indigo-50/30 p-12 text-center dark:border-slate-700 dark:from-slate-800 dark:to-indigo-900/10"
+              >
+                {/* Animated dots background */}
+                <div className="absolute inset-0 opacity-30">
+                  {[...Array(20)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: [0, 0.5, 0] }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        delay: i * 0.1,
+                      }}
+                      className="absolute h-1 w-1 rounded-full bg-indigo-400"
+                      style={{
+                        top: `${Math.random() * 100}%`,
+                        left: `${Math.random() * 100}%`,
+                      }}
+                    />
+                  ))}
+                </div>
+
+                <div className="relative">
+                  <motion.div
+                    animate={{
+                      scale: [1, 1.1, 1],
+                      rotate: [0, 5, -5, 0],
+                    }}
+                    transition={{ duration: 3, repeat: Infinity }}
+                    className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/10 to-cyan-500/10"
+                  >
+                    <Target className="h-10 w-10 text-indigo-500" />
+                  </motion.div>
+                  <h3 className="mb-2 text-lg font-semibold text-slate-700 dark:text-slate-300">
+                    Your Proposal Preview
+                  </h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    Fill out the form and your professional proposal will appear here
+                  </p>
+
+                  {/* Feature pills */}
+                  <div className="mt-6 flex flex-wrap justify-center gap-2">
+                    {['Timeline', 'Budget', 'Deliverables', 'Tech Stack'].map((item, i) => (
+                      <motion.span
+                        key={item}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.6 + i * 0.1 }}
+                        className="rounded-full bg-white/80 px-3 py-1 text-xs font-medium text-indigo-600 shadow-sm dark:bg-slate-700/80 dark:text-indigo-400"
+                      >
+                        {item}
+                      </motion.span>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
             </motion.div>
           </div>
         ) : proposal ? (
-          // Proposal View
+          // Proposal View (unchanged)
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -544,7 +795,9 @@ ${proposal.nextSteps}
             {/* Header with Actions */}
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
-                <h1 className="text-3xl md:text-4xl font-bold text-foreground" style={{ fontFamily: 'Poppins' }}>{proposal.title}</h1>
+                <h1 className="text-3xl md:text-4xl font-bold text-foreground" style={{ fontFamily: 'Poppins' }}>
+                  {proposal.title}
+                </h1>
                 <p className="mt-2 text-muted-foreground">Professional project proposal</p>
               </div>
               <div className="flex flex-wrap gap-3">
@@ -606,7 +859,9 @@ ${proposal.nextSteps}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
               <Card className="border-border bg-card p-8 shadow-md">
-                <h2 className="mb-4 text-2xl font-bold text-foreground" style={{ fontFamily: 'Poppins' }}>Problem Summary</h2>
+                <h2 className="mb-4 text-2xl font-bold text-foreground" style={{ fontFamily: 'Poppins' }}>
+                  Problem Summary
+                </h2>
                 <p className="text-foreground leading-relaxed">{proposal.problemSummary}</p>
               </Card>
             </motion.div>
@@ -618,7 +873,9 @@ ${proposal.nextSteps}
               transition={{ duration: 0.5, delay: 0.15 }}
             >
               <Card className="border-border bg-card p-8 shadow-md">
-                <h2 className="mb-6 text-2xl font-bold text-foreground" style={{ fontFamily: 'Poppins' }}>Recommended Stack</h2>
+                <h2 className="mb-6 text-2xl font-bold text-foreground" style={{ fontFamily: 'Poppins' }}>
+                  Recommended Stack
+                </h2>
                 <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-5">
                   {proposal.stack.map((tech, idx) => (
                     <motion.div
@@ -745,8 +1002,10 @@ ${proposal.nextSteps}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.35 }}
             >
-              <Card className=" bg-gradient-to-br from-primary/10 to-accent/10 p-8 shadow-md border-primary/20">
-                <h2 className="mb-4 text-2xl font-bold text-foreground" style={{ fontFamily: 'Poppins' }}>Next Steps</h2>
+              <Card className="bg-gradient-to-br from-primary/10 to-accent/10 p-8 shadow-md border-primary/20">
+                <h2 className="mb-4 text-2xl font-bold text-foreground" style={{ fontFamily: 'Poppins' }}>
+                  Next Steps
+                </h2>
                 <p className="mb-6 text-foreground leading-relaxed">{proposal.nextSteps}</p>
                 <Button
                   onClick={() => {

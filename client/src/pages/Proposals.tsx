@@ -195,10 +195,7 @@ export default function Proposals() {
                           variant="ghost"
                           size="sm"
                           className="gap-1.5 text-foreground hover:bg-secondary"
-                          onClick={() => {
-                            // Load proposal - navigate to home with proposal data
-                            toast.info("View feature coming soon");
-                          }}
+                          onClick={() => setLocation(`/proposals/${proposal.id}`)}
                         >
                           <Eye className="h-4 w-4" />
                           <span className="hidden sm:inline">View</span>
