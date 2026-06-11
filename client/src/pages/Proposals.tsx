@@ -106,7 +106,7 @@ export default function Proposals() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-4xl px-4 py-12 md:py-16">
+      <div className="mx-auto max-w-4xl px-4 py-12 md:py-24">
         {/* Header */}
         <div className="mb-10 flex items-center justify-between">
           <div>

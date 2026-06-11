@@ -60,9 +60,9 @@ async function startServer() {
 
   app.use(express.json());
 
-  // ==============================
+
   // AUTH ROUTES
-  // ==============================
+
 
   // Signup
   app.post("/api/auth/signup", async (req, res) => {
@@ -151,9 +151,9 @@ async function startServer() {
     res.json({ user });
   });
 
-  // ==============================
+
   // OPENAI PROPOSAL GENERATION
-  // ==============================
+
 
   app.post("/api/proposals/generate", authMiddleware, async (req, res) => {
     try {
@@ -165,6 +165,11 @@ async function startServer() {
 
       // If OpenAI key is set, use AI to generate the proposal
       if (OPENAI_API_KEY) {
+        const openaiClient = openai;
+        if (!openaiClient) {
+          throw new Error("OpenAI client not initialized");
+        }
+
         const prompt = `You are a professional project proposal writer. Generate a detailed project proposal based on the following client brief:
 
 Business Type: ${businessType}
@@ -198,7 +203,7 @@ Return a JSON object (no markdown, no code fences) with exactly this structure:
 
 Make the proposal specific to the client's business type and goal. Use realistic budget figures based on the budget range. Ensure the timeline phases match the client's timeline. Budget percentages should total 100%.`;
 
-        const completion = await openai.chat.completions.create({
+        const completion = await openaiClient.chat.completions.create({
           model: "gpt-4o-mini",
           messages: [
             {
@@ -228,9 +233,9 @@ Make the proposal specific to the client's business type and goal. Use realistic
     }
   });
 
-  // ==============================
+
   // PROPOSAL CRUD
-  // ==============================
+
 
   // Save a proposal
   app.post("/api/proposals", authMiddleware, (req, res) => {
@@ -318,9 +323,9 @@ Make the proposal specific to the client's business type and goal. Use realistic
     }
   });
 
-  // ==============================
+
   // EMAIL EXPORT
-  // ==============================
+
 
   app.post("/api/proposals/:id/email", authMiddleware, async (req, res) => {
     try {
@@ -467,9 +472,9 @@ Proposal created by ${user.name} via Client Scope Assistant
     }
   });
 
-  // ==============================
+
   // STATIC FILES & CLIENT ROUTING
-  // ==============================
+
 
   // Serve static files from dist/public in production
   const staticPath =
