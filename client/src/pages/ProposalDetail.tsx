@@ -35,6 +35,14 @@ export default function ProposalDetail() {
   const [proposal, setProposal] = useState<ProposalData | null>(null);
   const [loading, setLoading] = useState(true);
   const [showSendModal, setShowSendModal] = useState(false);
+  const [emailEnabled, setEmailEnabled] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/config")
+      .then((r) => r.json())
+      .then((d) => setEmailEnabled(!!d.emailEnabled))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (authLoading) return;
@@ -223,13 +231,24 @@ ${proposal.nextSteps}
               <Download className="mr-2 h-4 w-4" />
               PDF
             </Button>
-            <Button
-              onClick={() => setShowSendModal(true)}
-              className="bg-accent hover:bg-accent/90 text-white"
-            >
-              <Mail className="mr-2 h-4 w-4" />
-              Send
-            </Button>
+            {/* {emailEnabled ? (
+              <Button
+                onClick={() => setShowSendModal(true)}
+                className="bg-accent hover:bg-accent/90 text-white"
+              >
+                <Mail className="mr-2 h-4 w-4" />
+                Send
+              </Button>
+            ) : (
+              <Button
+                disabled
+                title="Email sending is not configured on this server"
+                className="cursor-not-allowed opacity-50 bg-accent text-white"
+              >
+                <Mail className="mr-2 h-4 w-4" />
+                Send
+              </Button>
+            )} */}
           </div>
         </div>
 

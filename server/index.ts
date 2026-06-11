@@ -60,6 +60,9 @@ async function startServer() {
 
   app.use(express.json());
 
+  app.get("/api/config", (_req, res) => {
+    res.json({ emailEnabled: !!emailTransporter });
+  });
 
   // AUTH ROUTES
 

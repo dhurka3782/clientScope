@@ -215,6 +215,14 @@ export default function Home() {
   const [saving, setSaving] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [viewLoading, setViewLoading] = useState(false);
+  const [emailEnabled, setEmailEnabled] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/config')
+      .then((r) => r.json())
+      .then((d) => setEmailEnabled(!!d.emailEnabled))
+      .catch(() => {});
+  }, []);
 
   // Load proposal from URL query param ?proposalId=...
   useEffect(() => {
@@ -851,13 +859,16 @@ ${proposal.nextSteps}
                 </Button>
                 <Button
                   onClick={() => {
+                    if (!emailEnabled) return;
                     if (!user) {
                       toast.info('Sign in to email proposals');
                       return;
                     }
                     setShowSendModal(true);
                   }}
-                  className="bg-accent hover:bg-accent/90 text-white"
+                  disabled={!emailEnabled}
+                  title={!emailEnabled ? 'Email sending is not configured on this server' : undefined}
+                  className="bg-accent hover:bg-accent/90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Mail className="mr-2 h-4 w-4" />
                   Send
