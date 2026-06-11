@@ -11,6 +11,8 @@ import { Copy, Download, Loader2, Check, Zap, Target, Layers, Clock, DollarSign,
 import { toast } from 'sonner';
 import { useAuth, apiPost, apiGet } from '@/contexts/AuthContext';
 import SendProposalModal from '@/components/SendProposalModal';
+import BlurText from '@/components/ui/BlurText';
+import TextCursor from '@/components/ui/TextCursor';
 
 /**
 Design Philosophy: Premium Minimalist with Depth
@@ -195,7 +197,6 @@ const formFields = [
     ],
   },
 ];
-
 export default function Home() {
   const { user, token } = useAuth();
   const [location, setLocation] = useLocation();
@@ -460,8 +461,20 @@ ${proposal.nextSteps}
               backgroundPosition: 'center',
             }}
           />
-          <div className="relative z-10 mx-auto flex h-full max-w-3xl flex-col items-center justify-center px-4 text-center -translate-y-8">
-            <motion.div
+          <div className="absolute inset-0 z-30">
+            <TextCursor
+              text="◎"
+              spacing={80}
+              followMouseDirection={true}
+              randomFloat={true}
+              exitDuration={0.3}
+              removalInterval={20}
+              maxPoints={20}
+              className="text-2xl text-white/50"
+            />
+          </div>
+          <div className="relative z-20 mx-auto flex h-full max-w-3xl flex-col items-center justify-center px-4 text-center -translate-y-8">
+           <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
@@ -470,14 +483,14 @@ ${proposal.nextSteps}
                 Turn a Brief Into a Proposal in Seconds
               </h1>
             </motion.div>
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="mt-6 text-lg text-white/90 md:text-xl"
-            >
-              Answer 5 quick questions and get a professional project proposal with timeline, deliverables, and budget breakdown.
-            </motion.p>
+            <BlurText
+              text="Answer 5 quick questions and get a professional project proposal with timeline, deliverables, and budget breakdown."
+              delay={150}
+              animateBy="words"
+              direction="top"
+              className="mt-6 text-lg text-white/90 md:text-xl flex justify-center"
+            />
+            
           </div>
         </motion.div>
       )}

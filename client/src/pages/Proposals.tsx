@@ -11,10 +11,8 @@ import {
   Eye,
   Calendar,
   Clock,
-  AlertCircle,
   Zap,
   ArrowLeft,
-  ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
@@ -63,7 +61,6 @@ export default function Proposals() {
 
   useEffect(() => {
     if (authLoading) return;
-
     if (!user) {
       setLocation("/");
       return;
@@ -88,7 +85,7 @@ export default function Proposals() {
     try {
       await apiDelete(`/api/proposals/${id}`, token);
       setProposals((prev) => prev.filter((p) => p.id !== id));
-      toast.success("Proposal deleted");
+      toast.success("Proposal deleted successfully");
     } catch (err: any) {
       toast.error(err.message || "Failed to delete proposal");
     } finally {
@@ -101,7 +98,7 @@ export default function Proposals() {
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="text-center">
           <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
-          <p className="mt-4 text-muted-foreground">Loading proposals...</p>
+          <p className="mt-4 text-muted-foreground">Loading your proposals...</p>
         </div>
       </div>
     );
@@ -111,22 +108,29 @@ export default function Proposals() {
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-4xl px-4 py-12 md:py-16">
         {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-10 flex items-center justify-between">
           <div>
-            <Link href="/" className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <Link 
+              href="/" 
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-3"
+            >
               <ArrowLeft className="h-4 w-4" />
               Back to Generator
             </Link>
-            <h1 className="mt-2 text-3xl font-bold text-foreground md:text-4xl" style={{ fontFamily: "Poppins" }}>
+            <h1 
+              className="text-4xl font-bold tracking-tight text-foreground" 
+              style={{ fontFamily: "Poppins" }}
+            >
               My Proposals
             </h1>
-            <p className="mt-2 text-muted-foreground">
+            <p className="mt-2 text-lg text-muted-foreground">
               View and manage your saved project proposals
             </p>
           </div>
+
           <Link href="/">
-            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
-              <Zap className="mr-2 h-4 w-4" />
+            <Button size="lg" className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25">
+              <Zap className="mr-2 h-5 w-5" />
               New Proposal
             </Button>
           </Link>
@@ -137,23 +141,23 @@ export default function Proposals() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-secondary/30 py-20"
+            className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-card py-24"
           >
-            <FileText className="mb-4 h-16 w-16 text-muted-foreground/50" />
-            <h2 className="text-xl font-semibold text-foreground">No proposals yet</h2>
-            <p className="mt-2 text-muted-foreground">
-              Generate your first proposal to see it here
+            <FileText className="mb-6 h-20 w-20 text-muted-foreground/40" />
+            <h2 className="text-2xl font-semibold text-foreground">No proposals yet</h2>
+            <p className="mt-3 text-muted-foreground text-center max-w-md">
+              Your generated proposals will appear here. Create your first one to get started.
             </p>
             <Link href="/">
-              <Button className="mt-6 bg-primary hover:bg-primary/90 text-primary-foreground">
-                <Zap className="mr-2 h-4 w-4" />
-                Create a Proposal
+              <Button size="lg" className="mt-8 bg-primary hover:bg-primary/90">
+                <Zap className="mr-2 h-5 w-5" />
+                Create Your First Proposal
               </Button>
             </Link>
           </motion.div>
         ) : (
-          /* Proposal List */
-          <div className="space-y-4">
+          /* Proposal Cards */
+          <div className="space-y-6">
             <AnimatePresence>
               {proposals.map((proposal, idx) => (
                 <motion.div
@@ -161,49 +165,57 @@ export default function Proposals() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, x: -20 }}
-                  transition={{ delay: idx * 0.05 }}
+                  transition={{ delay: idx * 0.04 }}
                 >
-                  <Card className="group border-border bg-card p-6 shadow-sm transition-all hover:shadow-md">
-                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                  <Card className="group overflow-hidden border border-border/60 bg-card hover:shadow-xl hover:shadow-black/5 transition-all duration-300 rounded-3xl p-8">
+                    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-semibold text-foreground truncate" style={{ fontFamily: "Poppins" }}>
+                        <h3 
+                          className="text-2xl font-semibold text-foreground leading-tight mb-4" 
+                          style={{ fontFamily: "Poppins" }}
+                        >
                           {proposal.title}
                         </h3>
-                        <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                          <span className="inline-flex items-center gap-1">
-                            <Calendar className="h-3.5 w-3.5" />
+
+                        {/* Metadata */}
+                        <div className="flex flex-wrap items-center gap-3 text-sm mb-4">
+                          <div className="flex items-center gap-1.5 text-muted-foreground">
+                            <Calendar className="h-4 w-4" />
                             {formatDate(proposal.created_at)}
-                          </span>
-                          <span className="inline-flex items-center gap-1">
-                            <Clock className="h-3.5 w-3.5" />
+                          </div>
+                          <div className="flex items-center gap-1.5 text-muted-foreground">
+                            <Clock className="h-4 w-4" />
                             {timelineLabel[proposal.timeline] || proposal.timeline}
-                          </span>
-                          <span className="rounded-full bg-primary/10 px-3 py-0.5 text-xs font-medium text-primary">
+                          </div>
+                          <div className="rounded-full bg-primary/10 px-4 py-1 text-xs font-medium text-primary">
                             {budgetLabel[proposal.budget] || proposal.budget}
-                          </span>
-                          <span className="rounded-full bg-accent/10 px-3 py-0.5 text-xs font-medium text-accent">
+                          </div>
+                          <div className="rounded-full bg-accent/10 px-4 py-1 text-xs font-medium text-accent capitalize">
                             {proposal.platform}
-                          </span>
+                          </div>
                         </div>
-                        <p className="mt-2 text-sm text-muted-foreground line-clamp-1">
+
+                        {/* Goal Description */}
+                        <p className="text-muted-foreground line-clamp-2 text-[15px] leading-relaxed">
                           {proposal.goal}
                         </p>
                       </div>
 
-                      <div className="flex items-center gap-2 md:flex-shrink-0">
+                      {/* Actions */}
+                      <div className="flex flex-row lg:flex-col gap-3 lg:pt-2">
                         <Button
-                          variant="ghost"
+                          variant="default"
                           size="sm"
-                          className="gap-1.5 text-foreground hover:bg-secondary"
+                          className="gap-2 rounded-2xl px-6"
                           onClick={() => setLocation(`/proposals/${proposal.id}`)}
                         >
                           <Eye className="h-4 w-4" />
-                          <span className="hidden sm:inline">View</span>
+                          View
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="gap-1.5 text-destructive hover:bg-destructive/10"
+                          className="gap-2 text-destructive hover:bg-destructive/10 rounded-2xl px-6"
                           onClick={() => handleDelete(proposal.id)}
                           disabled={deletingId === proposal.id}
                         >
@@ -212,7 +224,7 @@ export default function Proposals() {
                           ) : (
                             <Trash2 className="h-4 w-4" />
                           )}
-                          <span className="hidden sm:inline">Delete</span>
+                          Delete
                         </Button>
                       </div>
                     </div>
