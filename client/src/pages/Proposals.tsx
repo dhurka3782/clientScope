@@ -167,7 +167,7 @@ export default function Proposals() {
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ delay: idx * 0.04 }}
                 >
-                  <Card className="group overflow-hidden border border-border/60 bg-card hover:shadow-xl hover:shadow-black/5 transition-all duration-300 rounded-3xl p-8">
+                  <Card className="group overflow-hidden border border-border/60 bg-gradient-to-br from-chart-2/30 to-accent/10 hover:shadow-xl hover:shadow-black/5 transition-all duration-300 rounded-3xl p-8">
                     <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                       <div className="flex-1 min-w-0">
                         <h3 

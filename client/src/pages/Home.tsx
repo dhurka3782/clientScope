@@ -882,7 +882,7 @@ ${proposal.nextSteps}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
-              <Card className="border-border bg-card p-8 shadow-md">
+              <Card className="border-border bg-gradient-to-br from-chart-3/30 to-accent/10 p-8 shadow-md">
                 <h2 className="mb-4 text-2xl font-bold text-foreground" style={{ fontFamily: 'Poppins' }}>
                   Problem Summary
                 </h2>
@@ -896,7 +896,7 @@ ${proposal.nextSteps}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.15 }}
             >
-              <Card className="border-border bg-card p-8 shadow-md">
+              <Card className="border-border bg-gradient-to-br from-chart-3/30 to-accent/10 p-8 shadow-md">
                 <h2 className="mb-6 text-2xl font-bold text-foreground" style={{ fontFamily: 'Poppins' }}>
                   Recommended Stack
                 </h2>
@@ -922,7 +922,7 @@ ${proposal.nextSteps}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              <Card className="border-border bg-card p-8 shadow-md">
+              <Card className="border-border bg-gradient-to-br from-chart-3/30 to-accent/10 p-8 shadow-md">
                 <h2 className="mb-6 text-2xl font-bold text-foreground flex items-center gap-2" style={{ fontFamily: 'Poppins' }}>
                   <Layers className="h-6 w-6 text-accent" />
                   Deliverables
@@ -950,7 +950,7 @@ ${proposal.nextSteps}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.25 }}
             >
-              <Card className="border-border bg-card p-8 shadow-md">
+              <Card className="border-border bg-gradient-to-br from-chart-3/30 to-accent/10 p-8 shadow-md">
                 <h2 className="mb-6 text-2xl font-bold text-foreground flex items-center gap-2" style={{ fontFamily: 'Poppins' }}>
                   <Clock className="h-6 w-6 text-accent" />
                   Project Timeline
@@ -988,7 +988,7 @@ ${proposal.nextSteps}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
-              <Card className="border-border bg-card p-8 shadow-md">
+              <Card className="border-border bg-gradient-to-br from-chart-3/30 to-accent/10 p-8 shadow-md">
                 <h2 className="mb-6 text-2xl font-bold text-foreground flex items-center gap-2" style={{ fontFamily: 'Poppins' }}>
                   <DollarSign className="h-6 w-6 text-accent" />
                   Budget Breakdown
