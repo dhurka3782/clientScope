@@ -14,7 +14,10 @@ const __dirname = path.dirname(__filename);
 const JWT_SECRET = process.env.JWT_SECRET || "client-scope-secret-key-change-in-production";
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
 
-const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
+let openai: OpenAI | null = null;
+if (OPENAI_API_KEY) {
+  openai = new OpenAI({ apiKey: OPENAI_API_KEY });
+}
 
 // Email transporter setup
 let emailTransporter: nodemailer.Transporter | null = null;
@@ -481,7 +484,7 @@ Proposal created by ${user.name} via Client Scope Assistant
     res.sendFile(path.join(staticPath, "index.html"));
   });
 
-  const port = process.env.PORT || 3000;
+  const port = process.env.PORT || 3001;
 
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);

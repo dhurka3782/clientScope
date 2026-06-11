@@ -745,7 +745,7 @@ ${proposal.nextSteps}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.35 }}
             >
-              <Card className="border-border bg-gradient-to-br from-primary/10 to-accent/10 p-8 shadow-md border-primary/20">
+              <Card className=" bg-gradient-to-br from-primary/10 to-accent/10 p-8 shadow-md border-primary/20">
                 <h2 className="mb-4 text-2xl font-bold text-foreground" style={{ fontFamily: 'Poppins' }}>Next Steps</h2>
                 <p className="mb-6 text-foreground leading-relaxed">{proposal.nextSteps}</p>
                 <Button

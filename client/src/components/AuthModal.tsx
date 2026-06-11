@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
-import { Loader2, Mail, Lock, User, AlertCircle } from "lucide-react";
+import { Loader2, Mail, Lock, User, AlertCircle, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 interface AuthModalProps {
@@ -70,70 +70,88 @@ export default function AuthModal({ open, onClose, initialMode = "login" }: Auth
         onClose();
       }
     }}>
-      <DialogContent className="sm:max-w-md border-border bg-card">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-foreground" style={{ fontFamily: "Poppins" }}>
-            {mode === "login" ? "Welcome Back" : "Create Account"}
+      <DialogContent className="sm:max-w-md border border-border/50 bg-card/95 backdrop-blur-xl shadow-2xl rounded-3xl overflow-hidden">
+        {/* Decorative top accent */}
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary via-accent to-primary" />
+
+        <DialogHeader className="pt-8 pb-6 px-8 text-center relative">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
+            <Sparkles className="h-8 w-8 text-primary" />
+          </div>
+          
+          <DialogTitle 
+            className="text-3xl font-bold tracking-tight text-foreground" 
+            style={{ fontFamily: "Poppins" }}
+          >
+            {mode === "login" ? "Welcome Back" : "Join Client Scope"}
           </DialogTitle>
-          <DialogDescription className="text-muted-foreground">
+          
+          <DialogDescription className="mt-3 text-muted-foreground text-base max-w-xs mx-auto">
             {mode === "login"
-              ? "Sign in to save and manage your proposals"
-              : "Get started with saving your project proposals"}
+              ? "Sign in to access and manage your proposals effortlessly"
+              : "Create your account and start building professional proposals"}
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="px-8 pb-8 space-y-6">
           {/* Error Message */}
           <AnimatePresence>
             {error && (
               <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="flex items-start gap-2 rounded-lg bg-destructive/10 p-3 text-sm text-destructive"
+                initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                className="flex items-start gap-3 rounded-2xl bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive"
               >
-                <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0" />
                 <span>{error}</span>
               </motion.div>
             )}
           </AnimatePresence>
 
           {/* Name Field (Signup only) */}
-          {mode === "signup" && (
-            <div className="space-y-2">
-              <Label htmlFor="auth-name" className="text-foreground">
-                Full Name
-              </Label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  id="auth-name"
-                  type="text"
-                  placeholder="John Doe"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="border-border bg-input text-foreground pl-10 placeholder:text-muted-foreground"
-                  required
-                  disabled={loading}
-                />
-              </div>
-            </div>
-          )}
+          <AnimatePresence mode="wait">
+            {mode === "signup" && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="space-y-2"
+              >
+                <Label htmlFor="auth-name" className="text-foreground font-medium">
+                  Full Name
+                </Label>
+                <div className="relative group">
+                  <User className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
+                  <Input
+                    id="auth-name"
+                    type="text"
+                    placeholder="John Doe"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="border-border bg-input/80 hover:bg-input focus:bg-input h-14 pl-12 text-base rounded-2xl placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary/30 transition-all"
+                    required
+                    disabled={loading}
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Email */}
           <div className="space-y-2">
-            <Label htmlFor="auth-email" className="text-foreground">
-              Email
+            <Label htmlFor="auth-email" className="text-foreground font-medium">
+              Email Address
             </Label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <div className="relative group">
+              <Mail className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
               <Input
                 id="auth-email"
                 type="email"
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="border-border bg-input text-foreground pl-10 placeholder:text-muted-foreground"
+                className="border-border bg-input/80 hover:bg-input focus:bg-input h-14 pl-12 text-base rounded-2xl placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary/30 transition-all"
                 required
                 disabled={loading}
               />
@@ -142,18 +160,18 @@ export default function AuthModal({ open, onClose, initialMode = "login" }: Auth
 
           {/* Password */}
           <div className="space-y-2">
-            <Label htmlFor="auth-password" className="text-foreground">
+            <Label htmlFor="auth-password" className="text-foreground font-medium">
               Password
             </Label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <div className="relative group">
+              <Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
               <Input
                 id="auth-password"
                 type="password"
-                placeholder={mode === "signup" ? "At least 6 characters" : "Enter your password"}
+                placeholder={mode === "signup" ? "Create a strong password (min 6 chars)" : "Enter your password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="border-border bg-input text-foreground pl-10 placeholder:text-muted-foreground"
+                className="border-border bg-input/80 hover:bg-input focus:bg-input h-14 pl-12 text-base rounded-2xl placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary/30 transition-all"
                 required
                 minLength={6}
                 disabled={loading}
@@ -161,16 +179,16 @@ export default function AuthModal({ open, onClose, initialMode = "login" }: Auth
             </div>
           </div>
 
-          {/* Submit */}
+          {/* Submit Button */}
           <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-6"
+            className="w-full h-14 text-base font-semibold rounded-2xl bg-primary hover:bg-primary/90 active:scale-[0.985] transition-all shadow-lg shadow-primary/25 mt-2"
           >
             {loading ? (
               <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                {mode === "login" ? "Signing in..." : "Creating account..."}
+                <Loader2 className="mr-3 h-5 w-5 animate-spin" />
+                {mode === "login" ? "Signing you in..." : "Creating your account..."}
               </>
             ) : (
               mode === "login" ? "Sign In" : "Create Account"
@@ -178,30 +196,32 @@ export default function AuthModal({ open, onClose, initialMode = "login" }: Auth
           </Button>
 
           {/* Switch Mode */}
-          <div className="text-center text-sm text-muted-foreground">
-            {mode === "login" ? (
-              <>
-                Don't have an account?{" "}
-                <button
-                  type="button"
-                  onClick={switchMode}
-                  className="font-medium text-accent hover:text-accent/80 underline-offset-4 hover:underline"
-                >
-                  Sign up
-                </button>
-              </>
-            ) : (
-              <>
-                Already have an account?{" "}
-                <button
-                  type="button"
-                  onClick={switchMode}
-                  className="font-medium text-accent hover:text-accent/80 underline-offset-4 hover:underline"
-                >
-                  Sign in
-                </button>
-              </>
-            )}
+          <div className="text-center pt-2">
+            <p className="text-sm text-muted-foreground">
+              {mode === "login" ? (
+                <>
+                  Don't have an account?{" "}
+                  <button
+                    type="button"
+                    onClick={switchMode}
+                    className="font-semibold text-accent hover:text-accent/80 underline-offset-4 hover:underline transition-colors"
+                  >
+                    Sign up free
+                  </button>
+                </>
+              ) : (
+                <>
+                  Already have an account?{" "}
+                  <button
+                    type="button"
+                    onClick={switchMode}
+                    className="font-semibold text-accent hover:text-accent/80 underline-offset-4 hover:underline transition-colors"
+                  >
+                    Sign in
+                  </button>
+                </>
+              )}
+            </p>
           </div>
         </form>
       </DialogContent>

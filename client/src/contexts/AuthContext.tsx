@@ -38,10 +38,18 @@ async function apiRequest(
     headers,
   });
 
-  const data = await response.json();
+  let data: any;
+  try {
+    data = await response.json();
+  } catch {
+    if (!response.ok) {
+      throw new Error(`Request failed with status ${response.status}`);
+    }
+    return {};
+  }
 
   if (!response.ok) {
-    throw new Error(data.error || "Request failed");
+    throw new Error(data.error || `Request failed with status ${response.status}`);
   }
 
   return data;
