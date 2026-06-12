@@ -1,4 +1,4 @@
-# Web App Template (Static Frontend)
+# Client Scope
 
 Pure React 19 + Tailwind 4 template with shadcn/ui baked in. **Use this README as the checklist for shipping static experiences.**
 
@@ -46,11 +46,12 @@ Files in `client/public` are available at the root of your site—reference them
 
 ## 🎯 Development Workflow
 
-1. **Choose a design style** before you write any frontend code according to Design Guide (color, font, shadow, art style). Tell user what you chose. Remember to edit `client/src/index.css` for global theming and add needed font using google font cdn in `client/index.html`.
-2. **Compose pages** in `client/src/pages/`. Keep sections modular so they can be reused across routes.
-3. **Share primitives** via `client/src/components/`—extend shadcn/ui when needed instead of duplicating markup.
-4. **Keep styling consistent** by relying on existing Tailwind tokens (spacing, colors, typography).
-5. **Fetch external data** with `useEffect` if the site needs dynamic content from public APIs.
+1. **Start development server:** Run `pnpm dev:all` to launch both the Vite client (frontend) and the Express server (backend) concurrently. Alternatively, run `pnpm dev` for just the frontend or `pnpm dev:server` for just the backend.
+2. **Choose a design style** before you write any frontend code according to Design Guide (color, font, shadow, art style). Tell user what you chose. Remember to edit `client/src/index.css` for global theming and add needed font using google font cdn in `client/index.html`.
+3. **Compose pages** in `client/src/pages/`. Keep sections modular so they can be reused across routes.
+4. **Share primitives** via `client/src/components/`—extend shadcn/ui when needed instead of duplicating markup.
+5. **Keep styling consistent** by relying on existing Tailwind tokens (spacing, colors, typography).
+6. **Fetch external data** with `useEffect` if the site needs dynamic content from public APIs.
 ---
 
 ## 🎨 Frontend Development Guidelines
@@ -142,14 +143,16 @@ NEVER use external map libraries or request API keys from users - the proxy hand
   "version": "1.0.0",
   "type": "module",
   "license": "MIT",
-  "scripts": {
-    "dev": "vite --host",
-    "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
-    "start": "NODE_ENV=production node dist/index.js",
-    "preview": "vite preview --host",
-    "check": "tsc --noEmit",
-    "format": "prettier --write ."
-  },
+   "scripts": {
+     "dev": "vite --host",
+     "dev:server": "tsx watch server/index.ts",
+     "dev:all": "concurrently \"pnpm dev\" \"pnpm dev:server\"",
+     "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
+     "start": "NODE_ENV=production node dist/index.js",
+     "preview": "vite preview --host",
+     "check": "tsc --noEmit",
+     "format": "prettier --write ."
+   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-accordion": "^1.2.12",
